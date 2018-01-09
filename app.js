@@ -13,7 +13,7 @@ const productRoutes = require('./api/routes/products');
 const orderRoutes = require('./api/routes/orders');
 
 // connect to mongoose
-mongoose.Promise = Promise;
+mongoose.Promise = global.Promise;
 mongoose.connect(
   `mongodb://Butterfly-wings-47:${
     process.env.MONGO_ATLAS_PASS

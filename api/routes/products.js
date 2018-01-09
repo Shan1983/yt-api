@@ -8,11 +8,28 @@ const Product = require('../models/products');
 
 router.get('/', (req, res, next) => {
   Product.find()
+    .select('name price _id')
     .exec()
     .then(doc => {
-      console.log(doc);
+      const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+      const response = {
+        count: doc.length,
+        product: doc.map(doc => {
+          return {
+            status: 200,
+            description: 'Get ALL products',
+            name: doc.name,
+            price: doc.price,
+            _id: doc._id,
+            request: {
+              type: 'GET',
+              url: `${url}/${doc._id}`,
+            },
+          };
+        }),
+      };
       //   if (doc.length > 0) {
-      res.status(200).json(doc);
+      res.status(200).json(response);
       //   } else {
       //     res.status(404).json({ message: 'Not found' });
       //   }
@@ -24,6 +41,7 @@ router.get('/', (req, res, next) => {
 });
 
 router.post('/', (req, res, next) => {
+  const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
   // save a new product
   const product = new Product({
     _id: new mongoose.Types.ObjectId(),
@@ -36,7 +54,17 @@ router.post('/', (req, res, next) => {
     .then(result => {
       console.log(result);
       res.status(201).json({
-        product,
+        newProduct: {
+          status: 201,
+          description: 'POST new product',
+          name: result.name,
+          price: result.price,
+          _id: result._id,
+          request: {
+            type: 'GET',
+            url: `${url}/${result._id}`,
+          },
+        },
       });
     })
     .catch(err => {
@@ -46,13 +74,24 @@ router.post('/', (req, res, next) => {
 });
 
 router.get('/:productId', (req, res, next) => {
+  const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
   const id = req.params.productId;
   Product.findById(id)
+    .select('name price _id')
     .exec()
     .then(doc => {
       console.log(doc);
       if (doc) {
-        res.status(200).json(doc);
+        res.status(200).json({
+          status: 200,
+          description: 'Get SINGLE product',
+          name: doc.name,
+          price: doc.price,
+          request: {
+            type: 'GET',
+            url: `${url}`,
+          },
+        });
       } else {
         res.status(404).json({ message: 'Not found!' });
       }
@@ -64,6 +103,7 @@ router.get('/:productId', (req, res, next) => {
 });
 
 router.patch('/:productId', (req, res, next) => {
+  const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
   const id = req.params.productId;
   const updateOps = {};
 
@@ -79,8 +119,14 @@ router.patch('/:productId', (req, res, next) => {
   )
     .exec()
     .then(result => {
-      console.log(result);
-      res.status(200).json(result);
+      res.status(200).json({
+        status: 200,
+        description: 'UPDATE product',
+        request: {
+          type: 'GET',
+          url: `${url}`,
+        },
+      });
     })
     .catch(err => {
       console.log(err);
@@ -93,7 +139,9 @@ router.delete('/:productId', (req, res, next) => {
   Product.remove({ _id: id })
     .exec()
     .then(result => {
-      res.status(200).json({ message: `Product ${id} has been deleted` });
+      res.status(200).json({
+        message: `Product ${id} has been deleted`,
+      });
     })
     .catch(err => {
       console.log(err);
