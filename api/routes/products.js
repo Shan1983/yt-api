@@ -4,6 +4,9 @@ const multer = require('multer');
 
 const router = express.Router();
 
+// middlewarez
+const checkAuth = require('../middleware/check-auth');
+
 // config multer
 const storage = multer.diskStorage({
   destination(req, file, cb) {
@@ -63,7 +66,7 @@ router.get('/', (req, res, next) => {
     });
 });
 
-router.post('/', upload.single('productImage'), (req, res, next) => {
+router.post('/', checkAuth, upload.single('productImage'), (req, res, next) => {
   const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
   console.log(req.file);
   // save a new product
@@ -127,7 +130,7 @@ router.get('/:productId', (req, res, next) => {
     });
 });
 
-router.patch('/:productId', (req, res, next) => {
+router.patch('/:productId', checkAuth, (req, res, next) => {
   const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
   const id = req.params.productId;
   const updateOps = {};
@@ -159,7 +162,7 @@ router.patch('/:productId', (req, res, next) => {
     });
 });
 
-router.delete('/:productId', (req, res, next) => {
+router.delete('/:productId', checkAuth, (req, res, next) => {
   const id = req.params.productId;
   Product.remove({ _id: id })
     .exec()
